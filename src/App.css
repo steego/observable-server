@@ -9,8 +9,7 @@
 
 .App-header {
   background-color: #222;
-  height: 150px;
-  padding: 20px;
+  padding: .1em;
   color: white;
 }
 
@@ -21,4 +20,14 @@
 @keyframes App-logo-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+table.table-bordered {
+  width: 100%;
+}
+
+table.table-bordered, table.table-bordered>tr>td, table.table-bordered>tr>th {
+  border: 1px solid black;
+  border-collapse: collapse;
+  padding: .3em;
 }

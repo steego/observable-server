@@ -1,8 +1,6 @@
 import * as React from 'react';
 import './App.css';
 
-const logo = require('./logo.svg');
-
 let canUseDOM = !!(
   (typeof window !== 'undefined' &&
     window.document && window.document.createElement)
@@ -16,13 +14,12 @@ interface AppState {
 
 // tslint:disable-next-line:no-any
 class App extends React.Component<{}, AppState> {
-  private socket: WebSocket;
-
   constructor() {
     super();
   }
 
   createSocket = () => {
+    if (!canUseDOM) { return; }
     let socket = new WebSocket(socketAddress);
     this.updateState({ Message: 'Connected!' });
 
@@ -36,27 +33,22 @@ class App extends React.Component<{}, AppState> {
       setTimeout(this.createSocket, 1000);
     };
 
-    this.socket = socket;
   }
 
   componentWillMount() {
     this.createSocket();
   }
 
+
+
   render() {
-    let message = this.state.Message;
+    let message = tryParse(this.state.Message);
 
     return (
       <div className="App">
         <AppHeader title="Welcome to React!!" />
-        <Person name="Bob" />
-        <p>Hello</p>
 
-        <div>Can Use DOM: {canUseDOM ? 'Yes' : 'No'}</div>
-
-        <div>
-          Message: {message}
-        </div>
+        <Grid value={message} />
       </div>
 
     );
@@ -68,15 +60,61 @@ class App extends React.Component<{}, AppState> {
 
 }
 
+let tryParse = (json: string) => {
+  try {
+    return JSON.parse(json);
+  } catch (exn) {
+    return null;
+  }
+};
+
+// tslint:disable-next-line:no-any
+let Grid = (props: { value: any }): JSX.Element => {
+  let value = props.value;
+  if (value == null) {
+    return (<div>null</div>);
+  } else if (typeof value === 'string' || typeof value === 'number') {
+    return (<div>{value}</div>);
+  } else if (Array.isArray(value)) {
+    return (
+      <table className="table-bordered">
+        {value.map(p =>
+          <tr key={p}>
+            <td><Grid value={value[p]} /></td>
+          </tr>)}
+      </table>
+    );
+  // } else if (value.type != null) {
+  //     return MyElement(value);
+  } else {
+    let properties = Object.getOwnPropertyNames(value);
+    // let json = JSON.stringify(properties);
+    return (
+      <table className="table-bordered">
+        {properties.map(p =>
+          <tr key={p}>
+            <th>{p}</th>
+            <td><Grid value={value[p]} /></td>
+          </tr>)}
+      </table>
+    );
+  }
+};
+
+// interface JSXElement {
+//   type: string;
+//   key: string;
+//   // tslint:disable-next-line:no-any
+//   props: Map<string, any>[];
+// }
+
+// let MyElement = (e: JSXElement) => React.createElement(e.type, e.props, ...e.props['children']);
+
 let AppHeader = (props: { title: string }) =>
   (
     <div className="App-header">
-      <img src={logo} className="App-logo" alt="logo" />
       <h2>{props.title}</h2>
     </div>
   );
-
-let Person = (props: { name: string }) =>
-  <div>Name: {props.name}</div>;
 
 export default App;

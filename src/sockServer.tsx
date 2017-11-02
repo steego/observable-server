@@ -1,7 +1,8 @@
 /// <reference path="../node_modules/@types/node/index.d.ts"/>
 /// <reference path="../node_modules/@types/ws/index.d.ts"/>
 
-import WebSocket = require('ws');
+import * as WebSocket from 'ws';
+import * as Common from './Common';
 
 let stdout = process.stdout;
 
@@ -38,9 +39,23 @@ server.on('connection', ws => {
                 clearInterval(id);
                 trace('Cleared interval');
             } else {
-                let message = 'Gutten morgen! - ' + time.toLocaleTimeString();
-                ws.send(message);
-                trace('Sent message: ' + message);
+                let message = {
+                    message: 'Hello Becky!',
+                    timestamp: time,
+                    memoryUsage: process.memoryUsage(),
+                    cpuUsage: process.cpuUsage(),
+                    cwd: process.cwd(),
+                    gid: process.getgid(),
+                    hrtime: process.hrtime(),
+                    uptime: process.uptime,
+                    version: process.version,
+                    title: process.title,
+                    uid: process.getuid(),
+                    test: Common.Hi({})
+                };
+                let json = JSON.stringify(message);
+                ws.send(json);
+                trace('Sent message: ' + json);
             }
 
         },
