@@ -10,6 +10,8 @@ const socketAddress = 'ws://localhost:3001';
 
 interface AppState {
   Message: string;
+  CommandLine: string;
+  sendMessage(msg: string): void;
 }
 
 // tslint:disable-next-line:no-any
@@ -21,14 +23,25 @@ class App extends React.Component<{}, AppState> {
   createSocket = () => {
     if (!canUseDOM) { return; }
     let socket = new WebSocket(socketAddress);
-    this.updateState({ Message: 'Connected!' });
+    this.updateState({ ...this.state, Message: 'Connected!', sendMessage: (x) => { return; } });
 
     socket.onmessage = (message) => {
-      this.updateState({ Message: message.data });
+      this.updateState({
+        ...this.state,
+        Message: message.data,
+        sendMessage: (msg) => {
+          socket.send(msg);
+          this.updateState({ ...this.state, CommandLine: msg });
+        }
+      });
     };
 
     socket.onclose = (x) => {
-      this.updateState({ Message: 'Connection closed...  Will try to restart.' });
+      this.updateState({
+        ...this.state,
+        Message: 'Connection closed...  Will try to restart.',
+        sendMessage: (_) => { return; }
+      });
 
       setTimeout(this.createSocket, 1000);
     };
@@ -38,15 +51,23 @@ class App extends React.Component<{}, AppState> {
   componentWillMount() {
     this.createSocket();
   }
-
-
-
+  
   render() {
     let message = tryParse(this.state.Message);
+    let send = this.state.sendMessage;
 
     return (
       <div className="App">
         <AppHeader title="Welcome to React!!" />
+
+        <div>
+          <input 
+            className="codeInput" 
+            placeholder="enter code"
+            value={this.state.CommandLine} 
+            onChange={evt => send(evt.target.value)}
+          />
+        </div>
 
         <Grid value={message} />
       </div>
@@ -84,8 +105,8 @@ let Grid = (props: { value: any }): JSX.Element => {
           </tr>)}
       </table>
     );
-  // } else if (value.type != null) {
-  //     return MyElement(value);
+    // } else if (value.type != null) {
+    //     return MyElement(value);
   } else {
     let properties = Object.getOwnPropertyNames(value);
     // let json = JSON.stringify(properties);

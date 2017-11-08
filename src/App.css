@@ -31,3 +31,7 @@ table.table-bordered, table.table-bordered>tr>td, table.table-bordered>tr>th {
   border-collapse: collapse;
   padding: .3em;
 }
+
+.full-width { width: 100%; }
+
+.codeInput { width: 100%; font-size: 14pt; }

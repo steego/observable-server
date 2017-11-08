@@ -1,94 +1,63 @@
+"use strict";
 /// <reference path="../node_modules/@types/node/index.d.ts"/>
 /// <reference path="../node_modules/@types/ws/index.d.ts"/>
-
-import * as WebSocket from 'ws';
+exports.__esModule = true;
+var WebSocket = require("ws");
 // import * as Common from './Common';
-import { Observable, Observer } from 'rxjs';
-
-let stdout = process.stdout;
-
-interface Message {
-    name: string;
-    message: string;
-}
-
-let trace = (msg: string) => stdout.write(msg + '\n');
-
-export let parseMessage = (payload: string): Message => {
+var rxjs_1 = require("rxjs");
+var stdout = process.stdout;
+var trace = function (msg) { return stdout.write(msg + '\n'); };
+exports.parseMessage = function (payload) {
     var data = JSON.parse(payload);
     if (!data.name || !data.message) {
         throw new Error('Invalid message payload received: ' + payload);
     }
     return data;
 };
-
-let port = 3001;
-let WebSocketServer = WebSocket.Server;
-let options: WebSocket.ServerOptions = {
+var port = 3001;
+var WebSocketServer = WebSocket.Server;
+var options = {
     port: port
 };
-
-let server = new WebSocketServer(options);
-
-server.on('connection', ws => {
+var server = new WebSocketServer(options);
+server.on('connection', function (ws) {
     trace('Connection made');
-
-    let incomingMessages = Observable.create(
-        (observer: Observer<MessageEvent>) => {
-            ws.onmessage = observer.next.bind(observer);
-            ws.onerror = observer.error.bind(observer);
-            ws.onclose = observer.complete.bind(observer);
-            // return ws.close.bind(ws);
-        }
-    ).map((x: MessageEvent) => x.data);
-
-    let allMessages = incomingMessages.distinctUntilChanged();
-
-    var connHeartbeat = Observable.of('').concat(allMessages)
-        .combineLatest(Observable.interval(1000), (x, y) => x)
+    var incomingMessages = rxjs_1.Observable.create(function (observer) {
+        ws.onmessage = observer.next.bind(observer);
+        ws.onerror = observer.error.bind(observer);
+        ws.onclose = observer.complete.bind(observer);
+        // return ws.close.bind(ws);
+    }).map(function (x) { return x.data; });
+    var allMessages = incomingMessages.distinctUntilChanged();
+    var connHeartbeat = rxjs_1.Observable.of('').concat(allMessages)
+        .combineLatest(rxjs_1.Observable.interval(1000), function (x, y) { return x; })
         .distinctUntilChanged()
-        .takeWhile(x => ws.readyState !== ws.CLOSED && ws.readyState !== ws.CLOSING);
-
+        .takeWhile(function (x) { return ws.readyState !== ws.CLOSED && ws.readyState !== ws.CLOSING; });
     connHeartbeat
-        // .map(x => {
-
-        //     let ctx = getCtx();
-
-        //     return safeEval(ctx, x)
-        //         .takeUntil(Observable.empty().delay(100).concat(allMessages).take(1)) // observeNext(allMessages))
-        //         .map(r => ({ code: x, result: r }))
-        //         ;
-        // })
-        // // .subscribe((_) => { return; });
-        // .mergeAll()
-        //.map(x => getCtx(x))
-        .scan((x, y) => {
-            x.push(y);
-            return x;
-        }, [])
-        .map(message => JSON.stringify(message))
-        .subscribe(json => {
-
-            ws.send(json);
-            trace(json);
-        });
-
-    ws.on('message', message => {
+        .scan(function (x, y) {
+        x.push(y);
+        return x;
+    }, [])
+        .map(function (message) { return JSON.stringify(message); })
+        .subscribe(function (json) {
+        ws.send(json);
+        trace(json);
+    });
+    ws.on('message', function (message) {
         try {
             // let msg = parseMessage(message.toString());
             trace('Input: ' + message);
             // broadcast(JSON.stringify(msg));
-        } catch (error) {
+        }
+        catch (error) {
             trace('Error: ' + error);
         }
     });
-
-    ws.on('close', (code, reason) => {
+    ws.on('close', function (code, reason) {
         trace('Disconnected: ' + code.toString() + ' ' + reason);
     });
-
-    let getCtx = (path: string) => {
-        let time = new Date();
+    var getCtx = function (path) {
+        var time = new Date();
         return {
             path: path,
             timestamp: time,
@@ -106,13 +75,11 @@ server.on('connection', ws => {
                 protocol: ws.protocol,
                 protocolVersion: ws.protocolVersion
             },
-            sample: ((rate: number) => Observable.interval(rate))
+            sample: (function (rate) { return rxjs_1.Observable.interval(rate); })
         };
     };
 });
-
 trace('Server is running on port' + port);
-
 // tslint:disable-next-line:no-any
 // let safeEval = (context: any, js: string): Observable<any> => {
 //     try {
@@ -128,10 +95,8 @@ trace('Server is running on port' + port);
 //         return Observable.of({ exception: exn });
 //     }
 // };
-
 // function observeNext<T>(o: Observable<T>) {
 //     // return o.distinctUntilChanged(); // .concat(o.take(1));
-
 //     return Observable.create((observer: Observer<T>) => {
 //         o.skip(2).subscribe(msg => {
 //             observer.next(msg);
@@ -140,4 +105,4 @@ trace('Server is running on port' + port);
 //         });
 //         return;
 //     });
-// }
+// } 

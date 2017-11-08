@@ -6,6 +6,7 @@
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
     "react-scripts-ts": "2.7.0",
+    "rxjs": "^5.5.2",
     "ws": "^3.2.0"
   },
   "scripts": {
@@ -13,7 +14,7 @@
     "build": "react-scripts-ts build",
     "test": "react-scripts-ts test --env=jsdom",
     "eject": "react-scripts-ts eject",
-    "startSock": "tsc-watch ./src/sockServer.tsx --jsx react --lib 'es6' --outDir ./build --onSuccess 'node ./build/sockServer.js'",
+    "startSock": "tsc-watch ./src/sockServer.tsx --jsx react --lib 'es6,dom' --outDir ./dist --onSuccess 'node ./dist/sockServer.js'",
     "both": "concurrently \"react-scripts-ts start\" \"npm run startSock\""
   },
   "devDependencies": {
